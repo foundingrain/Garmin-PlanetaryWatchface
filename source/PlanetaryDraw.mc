@@ -19,7 +19,14 @@ module Planetary {
         private const SEC = Gfx.COLOR_RED;
         private const TR = Gfx.COLOR_TRANSPARENT;
 
-        private const ORBITS = [ 0.15, 0.30, 0.45, 0.60, 0.75 ];
+        private const ORBITS = {
+            :sol => 0.0,
+            :mercury => 0.15,
+            :venus => 0.30,
+            :terra => 0.45,
+            :mars => 0.60,
+            :juputer => 0.75
+        };
 
         // Helpers
         private function starStyleForBattery(batt as Number, baseR as Number) as Dictionary {
@@ -66,6 +73,15 @@ module Planetary {
                 :ringColor => ringColor
             };
         }
+        private function drawSunRay(dc as Dc, minsSinceMidnight, outerR as Number) {
+           var m12 = minsSinceMidnight % 720;
+
+           var a = (m12 * 2.0 * Math.PI / 720.0) - (Math.PI / 2.0);
+           var x2 = cx + outerR * Math.cos(a);
+           var y2 = cy + outerR * Math.sin(a);
+
+            dc.drawLine(cx, cy, x2, y2);
+        }
 
         public function initialize() {
             cx = 0; cy = 0; radius = 0;
@@ -85,7 +101,9 @@ module Planetary {
         public function render(dc as Dc, s as Planetary.State) {
             clear(dc);
             // drawDial(dc, s);
-            drawOrbitalLines(dc);
+            // drawOrbitalLines(dc);
+            drawTimeSeparationLine(dc);
+            drawSunEventLines(dc, s);
             drawBatterySol(dc, s);
             drawSecMercury(dc, s);
             drawMinVenus(dc, s);
@@ -114,6 +132,33 @@ module Planetary {
                 dc.drawCircle(cx, cy, r);
             }
         }
+        private function drawTimeSeparationLine(dc as Dc) {
+            var dots = 60;
+            var dotr = radius * 0.01;
+            var r = radius * (ORBITS[:terra] + (ORBITS[:mars] - ORBITS[:terra]) / 2.0);
+
+            dc.setColor(Gfx.COLOR_DK_GRAY, Gfx.COLOR_TRANSPARENT);
+            for (var i = 0; i < dots; i++) {
+                var a = (i * 2.0 * Math.PI / dots);
+                var x = cx + r * Math.cos(a);
+                var y = cy + r * Math.sin(a);
+
+                dc.fillCircle(x, y, dotr);
+            }
+        }
+        private function drawSunEventLines(dc as Dc, s as Planetary.State) {
+            if (s.sunrise == null || s.sunset == null) {
+                return;
+            }
+
+            var len = radius * ORBITS[:terra];
+            
+            dc.setColor(Gfx.COLOR_ORANGE, Gfx.COLOR_TRANSPARENT);
+            drawSunRay(dc, s.sunrise, len);
+            
+            dc.setColor(Gfx.COLOR_ORANGE, Gfx.COLOR_TRANSPARENT);
+            drawSunRay(dc, s.sunset, len);
+        }
         private function drawBatterySol(dc as Dc, s as Planetary.State) {
             var baseR = radius * 0.10;
 
@@ -128,6 +173,8 @@ module Planetary {
             for (var i = 0; i < star[:ringCount]; i++) {
                 dc.drawCircle(cx, cy, star[:ringR] + (i * 3));
             }
+
+            dc.setColor(Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
         }
         private function drawSecMercury(dc as Dc, s as Planetary.State) {
             var orbitR = radius * 0.15;
@@ -157,44 +204,47 @@ module Planetary {
             var angle = (s.min * 2.0 * Math.PI / 60) - (Math.PI / 2.0);
 
             // Body Position
-            var mx = cx + (orbitR * Math.cos(angle));
-            var my = cy + (orbitR * Math.sin(angle));
+            var vx = cx + (orbitR * Math.cos(angle));
+            var vy = cy + (orbitR * Math.sin(angle));
 
             // Body
             dc.setColor(Gfx.COLOR_ORANGE, Gfx.COLOR_TRANSPARENT);
-            dc.fillCircle(mx, my, bodyR);
+            dc.fillCircle(vx, vy, bodyR);
 
             // Text
             var textOffset = dc.getFontHeight(Gfx.FONT_XTINY) / 2;
             dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(mx, my - textOffset, Gfx.FONT_XTINY, s.min, Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(vx, vy - textOffset, Gfx.FONT_XTINY, s.min, Gfx.TEXT_JUSTIFY_CENTER);
         }
         private function drawHourTerra(dc as Dc, s as Planetary.State) {
             var orbitR = radius * 0.45;
             var bodyR = radius * 0.08;
 
-            // Hour position
-            var angle = ((s.hour % 12) * 2.0 * Math.PI / 12) - (Math.PI / 2.0);
+            var hour12 = s.hour % 12;
+            var smoothHour = hour12 + (s.min / 60.0);
+
+            // Hour Angle
+            var angle = (smoothHour * 2.0 * Math.PI / 12) - (Math.PI / 2.0);
 
             // Body Position
-            var mx = cx + (orbitR * Math.cos(angle));
-            var my = cy + (orbitR * Math.sin(angle));
+            var tx = cx + (orbitR * Math.cos(angle));
+            var ty = cy + (orbitR * Math.sin(angle));
 
             // Body
             dc.setColor(Gfx.COLOR_BLUE, Gfx.COLOR_TRANSPARENT);
-            dc.fillCircle(mx, my, bodyR);
+            dc.fillCircle(tx, ty, bodyR);
 
             // Text
             var hour = System.getDeviceSettings().is24Hour ? s.hour : s.hour % 12;
             var textOffset = dc.getFontHeight(Gfx.FONT_XTINY) / 2;
             dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(mx, my - textOffset, Gfx.FONT_XTINY, hour, Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(tx, ty - textOffset, Gfx.FONT_XTINY, hour, Gfx.TEXT_JUSTIFY_CENTER);
         }
         private function drawDayMars(dc as Dc, s as Planetary.State) {
             var orbitR = radius * 0.6;
             var bodyR = radius * 0.08;
 
-            // Hour position
+            // Day angle
             var dow = s.dow - 1;
             var angle = (dow * 2.0 * Math.PI / 7.0) - (Math.PI / 2.0);
 
@@ -215,22 +265,22 @@ module Planetary {
             var orbitR = radius * 0.75;
             var bodyR = radius * 0.08;
 
-            // Hour position
+            // Month Angle
             var mon = s.month;
             var angle = (mon * 2.0 * Math.PI / 12.0) - (Math.PI / 2.0);
 
             // Body Position
-            var mx = cx + (orbitR * Math.cos(angle));
-            var my = cy + (orbitR * Math.sin(angle));
+            var jx = cx + (orbitR * Math.cos(angle));
+            var jy = cy + (orbitR * Math.sin(angle));
 
             // Body
             dc.setColor(Gfx.COLOR_PINK, Gfx.COLOR_TRANSPARENT);
-            dc.fillCircle(mx, my, bodyR);
+            dc.fillCircle(jx, jy, bodyR);
 
             // Text
             var textOffset = dc.getFontHeight(Gfx.FONT_XTINY) / 2;
             dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(mx, my - textOffset, Gfx.FONT_XTINY, s.month, Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(jx, jy - textOffset, Gfx.FONT_XTINY, s.month, Gfx.TEXT_JUSTIFY_CENTER);
         }
     }
 }
