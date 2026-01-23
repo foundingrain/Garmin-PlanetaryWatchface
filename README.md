@@ -1,6 +1,9 @@
 # Planetary Garmin Watchface
 Emulates our solar system according to your current time.
 
+## Permissions
+* Requires position permission to draw Sun event lines.
+
 ## Orbital Bodies
 * Sol
   - Battery
