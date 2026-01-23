@@ -248,6 +248,15 @@ module Planetary {
             var dow = s.dow - 1;
             var angle = (dow * 2.0 * Math.PI / 7.0) - (Math.PI / 2.0);
 
+            // Smoothing, harder to tell day. decide later if delete
+            /* 
+            var dowOffset = (s.hour / 24.0);
+
+            // Smoothing
+            var smoothDow = dow + dowOffset;
+            var angle = (smoothDow * 2.0 * Math.PI / 7.0) - (Math.PI / 2.0);
+            */
+
             // Body Position
             var mx = cx + (orbitR * Math.cos(angle));
             var my = cy + (orbitR * Math.sin(angle));
