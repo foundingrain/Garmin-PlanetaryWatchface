@@ -12,13 +12,6 @@ module Planetary {
     class Renderer {
         private var cx, cy, radius;
 
-        private const BG = Gfx.COLOR_BLACK;
-        private const FG = Gfx.COLOR_WHITE;
-        private const ALT = Gfx.COLOR_DK_GRAY;
-        private const HL = Gfx.COLOR_YELLOW;
-        private const SEC = Gfx.COLOR_RED;
-        private const TR = Gfx.COLOR_TRANSPARENT;
-
         private const ORBITS = {
             :sol => 0.0,
             :mercury => 0.15,
@@ -94,7 +87,7 @@ module Planetary {
             radius = ((w < h) ? w : h) / 2;
         }
         public function clear(dc as Dc) {
-            dc.setColor(BG, BG);
+            dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_BLACK);
             dc.clear();
         }
 
@@ -115,7 +108,7 @@ module Planetary {
         public function drawDial(dc as Dc, s as Planetary.State) {
             var r = radius;
 
-            dc.setColor(ALT, TR);
+            dc.setColor(Gfx.COLOR_DK_GRAY, Gfx.COLOR_TRANSPARENT);
 
             for (var i = 0; i < 12; i++) {
                 var angle = (i * 2.0 * Math.PI / 12.0) - (Math.PI / 2.0);
