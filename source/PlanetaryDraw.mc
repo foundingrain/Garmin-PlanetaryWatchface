@@ -21,6 +21,13 @@ module Planetary {
             :juputer => 0.75
         };
 
+        private const FONTS = {
+            :sec => Gfx.FONT_XTINY,
+            :min => Gfx.FONT_XTINY,
+            :hour => Gfx.FONT_XTINY,
+            :day => Gfx.FONT_XTINY,
+            :mon => Gfx.FONT_XTINY
+        };
         // Helpers
         private function starStyleForBattery(batt as Number, baseR as Number) as Dictionary {
             var coreR, ringR, color, ringColor; 
@@ -185,9 +192,10 @@ module Planetary {
             dc.fillCircle(mx, my, bodyR);
 
             // Text
-            var textOffset = dc.getFontHeight(Gfx.FONT_XTINY) / 2;
+            var t = s.sec.toString();
+            var tOffsetH = dc.getFontHeight(FONTS[:sec]) / 2;
             dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(mx, my - textOffset, Gfx.FONT_XTINY, s.sec, Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(mx, my - tOffsetH, FONTS[:sec], t, Gfx.TEXT_JUSTIFY_CENTER);
         }
         private function drawMinVenus(dc as Dc, s as Planetary.State) {
             var orbitR = radius * 0.3;
@@ -205,9 +213,10 @@ module Planetary {
             dc.fillCircle(vx, vy, bodyR);
 
             // Text
-            var textOffset = dc.getFontHeight(Gfx.FONT_XTINY) / 2;
+            var t = s.min.toString();
+            var tOffset = dc.getFontHeight(FONTS[:min]) / 2;
             dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(vx, vy - textOffset, Gfx.FONT_XTINY, s.min, Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(vx, vy - tOffset, FONTS[:min], t, Gfx.TEXT_JUSTIFY_CENTER);
         }
         private function drawHourTerra(dc as Dc, s as Planetary.State) {
             var orbitR = radius * 0.45;
@@ -228,10 +237,10 @@ module Planetary {
             dc.fillCircle(tx, ty, bodyR);
 
             // Text
-            var hour = System.getDeviceSettings().is24Hour ? s.hour : s.hour % 12;
-            var textOffset = dc.getFontHeight(Gfx.FONT_XTINY) / 2;
+            var t = System.getDeviceSettings().is24Hour ? s.hour : s.hour % 12;
+            var tOffset = dc.getFontHeight(FONTS[:hour]) / 2;
             dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(tx, ty - textOffset, Gfx.FONT_XTINY, hour, Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(tx, ty - tOffset, FONTS[:hour], t, Gfx.TEXT_JUSTIFY_CENTER);
         }
         private function drawDayMars(dc as Dc, s as Planetary.State) {
             var orbitR = radius * 0.6;
@@ -259,9 +268,10 @@ module Planetary {
             dc.fillCircle(mx, my, bodyR);
 
             // Text
-            var textOffset = dc.getFontHeight(Gfx.FONT_XTINY) / 2;
+            var t = s.day.toString();
+            var tOffset = dc.getFontHeight(FONTS[:day]) / 2;
             dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(mx, my - textOffset, Gfx.FONT_XTINY, s.day, Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(mx, my - tOffset, FONTS[:day], t, Gfx.TEXT_JUSTIFY_CENTER);
         }
         private function drawMonthJupiter(dc as Dc, s as Planetary.State) {
             var orbitR = radius * 0.75;
@@ -280,9 +290,10 @@ module Planetary {
             dc.fillCircle(jx, jy, bodyR);
 
             // Text
-            var textOffset = dc.getFontHeight(Gfx.FONT_XTINY) / 2;
+            var t = s.month.toString();
+            var tOffset = dc.getFontHeight(FONTS[:mon]) / 2;
             dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(jx, jy - textOffset, Gfx.FONT_XTINY, s.month, Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(jx, jy - tOffset, FONTS[:mon], t, Gfx.TEXT_JUSTIFY_CENTER);
         }
     }
 }
