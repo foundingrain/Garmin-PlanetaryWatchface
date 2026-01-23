@@ -18,6 +18,7 @@ module Planetary {
             sunrise = null;
             sunset = null;
         }
+        // TODO: Separate fast and slow updates
         public function update() {
             var now = System.getClockTime();
             var greg = Time.Gregorian.info(Time.now(), Time.FORMAT_SHORT);
