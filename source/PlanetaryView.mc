@@ -26,11 +26,17 @@ class PlanetaryView extends WatchUi.WatchFace {
     // the state of this View and prepare it to be shown. This includes
     // loading resources into memory.
     function onShow() as Void {
+        state.updateFast();
+        state.updateSlow();
     }
 
     // Update the view
     function onUpdate(dc as Dc) as Void {
-        state.update();
+        state.updateFast();
+        if (state.shouldRunSlow(15)) {
+            state.updateSlow();
+        }
+
         draw.render(dc, state);
 
         // Call the parent onUpdate function to redraw the layout

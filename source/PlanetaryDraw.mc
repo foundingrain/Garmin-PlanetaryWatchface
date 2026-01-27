@@ -102,9 +102,15 @@ module Planetary {
             clear(dc);
             // drawDial(dc, s);
             // drawOrbitalLines(dc);
+
+            // Background
             drawTimeSeparationLine(dc);
+
+            // Status indicators
             drawSunEventLines(dc, s);
             drawBatterySol(dc, s);
+
+            // Time
             drawSecMercury(dc, s);
             drawMinVenus(dc, s);
             drawHourTerra(dc, s);
@@ -152,7 +158,7 @@ module Planetary {
             }
 
             var len = radius * ORBITS[:terra];
-            
+
             dc.setColor(Gfx.COLOR_ORANGE, Gfx.COLOR_TRANSPARENT);
             drawSunRay(dc, s.sunrise, len);
             

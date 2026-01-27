@@ -6,10 +6,16 @@ import Toybox.Position;
 
 module Planetary {
     class State {
-        public var hour, min, sec; 
-        public var dow, day, month, year;
+        // Fast updates
+        public var hour, min, sec;
         public var batt;
+
+        // Slow updates 
+        public var dow, day, month, year;
         public var sunrise, sunset;
+        public var weather;
+
+        private var _lastSlowKey;
 
         public function initialize() {
             hour = 0; min = 0; sec = 0;
@@ -17,38 +23,65 @@ module Planetary {
             batt = 0;
             sunrise = null;
             sunset = null;
+            weather = null;
+            _lastSlowKey = null;
         }
-        // TODO: Separate fast and slow updates
-        public function update() {
+
+        public function updateFast() {
             var now = System.getClockTime();
-            var greg = Time.Gregorian.info(Time.now(), Time.FORMAT_SHORT);
             var sys = System.getSystemStats();
-            var pos = Position.getInfo();
 
             hour = now.hour;
             min = now.min;
             sec = now.sec;
+
+            batt = sys.battery;
+        }
+
+        public function updateSlow() {
+            var greg = Time.Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+            var pos = Position.getInfo();
 
             dow = greg.day_of_week;
             day = greg.day;
             month = greg.month;
             year = greg.year;
 
-            batt = sys.battery;
-
-            // Sunrise / Sunset (Needs permission)
+            // Position-based Modules
             if (pos != null && pos.position != null) {
-                var sr = Weather.getSunrise(pos.position, Time.now());
-                var ss = Weather.getSunset(pos.position, Time.now());
-
-                if (sr != null && ss != null) {
-                    var srLocal = Time.Gregorian.info(sr, Time.FORMAT_SHORT);
-                    var ssLocal = Time.Gregorian.info(ss, Time.FORMAT_SHORT);
-
-                    sunrise = ((srLocal.hour * 60) + srLocal.min) % 1440;
-                    sunset = ((ssLocal.hour * 60) + ssLocal.min) % 1440;
-                }
+                updateSunEventTimes(pos);
+                updateWeather(pos);
             }
+        }
+        private function updateSunEventTimes(pos as Position.Info) {
+            var sr = Weather.getSunrise(pos.position, Time.now());
+            var ss = Weather.getSunset(pos.position, Time.now());
+
+            if (sr != null && ss != null) {
+                var srLocal = Time.Gregorian.info(sr, Time.FORMAT_SHORT);
+                var ssLocal = Time.Gregorian.info(ss, Time.FORMAT_SHORT);
+
+                sunrise = ((srLocal.hour * 60) + srLocal.min) % 1440;
+                sunset = ((ssLocal.hour * 60) + ssLocal.min) % 1440;
+            }
+        }
+        private function updateWeather(pos as Position.Info) {
+            var w = Weather.getHourlyForecast();
+
+            if (w != null) {
+                weather = w;
+            }
+        }
+
+        public function shouldRunSlow(intervalMin as Number) as Boolean {
+            var bucket = (min / intervalMin).toNumber();
+            var key = (year * 10000000) + (month * 10000) + (day * 100) + bucket;
+
+            if (_lastSlowKey == null || key != _lastSlowKey) {
+                _lastSlowKey = key;
+                return true;
+            }
+            return false;
         }
     }
 }
