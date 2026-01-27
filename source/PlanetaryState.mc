@@ -13,7 +13,7 @@ module Planetary {
         // Slow updates 
         public var dow, day, month, year;
         public var sunrise, sunset;
-        public var weather;
+        public var hourlyForecast;
 
         private var _lastSlowKey;
 
@@ -23,7 +23,7 @@ module Planetary {
             batt = 0;
             sunrise = null;
             sunset = null;
-            weather = null;
+            hourlyForecast = null;
             _lastSlowKey = null;
         }
 
@@ -50,7 +50,7 @@ module Planetary {
             // Position-based Modules
             if (pos != null && pos.position != null) {
                 updateSunEventTimes(pos);
-                updateWeather(pos);
+                updateHourlyForecast(pos);
             }
         }
         private function updateSunEventTimes(pos as Position.Info) {
@@ -65,11 +65,11 @@ module Planetary {
                 sunset = ((ssLocal.hour * 60) + ssLocal.min) % 1440;
             }
         }
-        private function updateWeather(pos as Position.Info) {
-            var w = Weather.getHourlyForecast();
+        private function updateHourlyForecast(pos as Position.Info) {
+            var hf = Weather.getHourlyForecast();
 
-            if (w != null) {
-                weather = w;
+            if (hf != null) {
+                hourlyForecast = hf;
             }
         }
 
