@@ -105,6 +105,10 @@ module Planetary {
             var info = Time.Gregorian.utcInfo(when, Time.FORMAT_SHORT);
             return info.day;
         }
+        private function getRomanNumeral(n as Number) {
+            var rn = [null, "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII" ];
+            return rn[n];
+        }
 
         public function initialize() {
             cx = 0; cy = 0; radius = 0;
@@ -142,7 +146,8 @@ module Planetary {
             //drawYearSaturn(dc, s);
 
             // Date
-            drawDowHighlight(dc, s);
+            drawDowLabel(dc, s);
+            drawMonthLabel(dc, s);
         }
         public function drawDial(dc as Dc, s as Planetary.State) {
             var r = radius;
@@ -234,7 +239,8 @@ module Planetary {
             var bodyR = radius * 0.08;
 
             // Minute position
-            var angle = (s.min * 2.0 * Math.PI / 60) - (Math.PI / 2.0);
+            var minSmoothed = s.min.toFloat() + (s.sec.toFloat() / 60.0);
+            var angle = (minSmoothed * 2.0 * Math.PI / 60.0) - (Math.PI / 2.0);
 
             // Body Position
             var vx = cx + (orbitR * Math.cos(angle));
@@ -324,22 +330,26 @@ module Planetary {
             dc.fillCircle(jx, jy, bodyR);
 
             // Text
-            // var rn = [null, "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII" ];
             var t = s.month.toString();
-            // var t = rn[mon];
             var tOffset = dc.getFontHeight(FONTS[:mon]) / 2;
             dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
             dc.drawText(jx, jy - tOffset, FONTS[:mon], t, Gfx.TEXT_JUSTIFY_CENTER);
         }
 
         // DOW HIGHLIGHT
-        private function drawDowHighlight(dc as Dc, s as Planetary.State) {
+        private function drawDowLabel(dc as Dc, s as Planetary.State) {
             var dow = s.dow;
             var dies = [null, "SOLIS", "LUNAE", "MARTIS", "MERCURII", "IOVIS", "VENERIS", "SATURNI"];
             var t = dies[dow];
 
             dc.setColor(Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(cx, cy - radius * 0.9, Gfx.FONT_XTINY, t, Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(cx, cy - radius * 0.88, Gfx.FONT_XTINY, t, Gfx.TEXT_JUSTIFY_CENTER);
+        }
+        private function drawMonthLabel(dc as Dc, s as Planetary.State) {
+            var t = getRomanNumeral(s.month.toNumber());
+
+            dc.setColor(Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
+            dc.drawText(cx, cy - radius * 0.98, Gfx.FONT_XTINY, t, Gfx.TEXT_JUSTIFY_CENTER);
         }
     }
 }
