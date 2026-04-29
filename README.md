@@ -1,6 +1,11 @@
 # Planetary Garmin Watchface
 Emulates our solar system according to your current time.
 
+
+https://github.com/user-attachments/assets/4b7957ca-72f1-41be-95a2-5ed175c3ae28
+
+
+
 ## Permissions
 * Requires position permission to draw Sun event lines.
 
