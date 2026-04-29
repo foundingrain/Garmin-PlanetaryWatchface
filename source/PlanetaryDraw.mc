@@ -82,6 +82,29 @@ module Planetary {
 
             dc.drawLine(cx, cy, x2, y2);
         }
+        private function getLastDayOfMonth(dc as Dc, s as Planetary.State) {
+            var nextMonth = s.month + 1;
+            var year = s.year;
+            if (nextMonth > 12) {
+                nextMonth = 1;
+                year++;
+            }
+            var options = {
+                :year => year,
+                :month => nextMonth,
+                :day => 1,
+                :hour => s.hour,
+                :minute => s.min,
+                :second => s.sec
+            };
+
+            var when = Time.Gregorian.moment(options);
+            var oneDay = new Time.Duration(Time.Gregorian.SECONDS_PER_DAY);
+            when = when.subtract(oneDay);
+
+            var info = Time.Gregorian.utcInfo(when, Time.FORMAT_SHORT);
+            return info.day;
+        }
 
         public function initialize() {
             cx = 0; cy = 0; radius = 0;
@@ -107,7 +130,7 @@ module Planetary {
             drawTimeSeparationLine(dc);
 
             // Status indicators
-            drawSunEventLines(dc, s);
+            // drawSunEventLines(dc, s);
             drawBatterySol(dc, s);
 
             // Time
@@ -117,6 +140,9 @@ module Planetary {
             drawDayMars(dc, s);
             drawMonthJupiter(dc, s);
             //drawYearSaturn(dc, s);
+
+            // Date
+            drawDowHighlight(dc, s);
         }
         public function drawDial(dc as Dc, s as Planetary.State) {
             var r = radius;
@@ -243,7 +269,8 @@ module Planetary {
             dc.fillCircle(tx, ty, bodyR);
 
             // Text
-            var t = System.getDeviceSettings().is24Hour ? s.hour : s.hour % 12;
+            if (hour12 == 0) { hour12 = 12; }
+            var t = System.getDeviceSettings().is24Hour ? s.hour : hour12;
             var tOffset = dc.getFontHeight(FONTS[:hour]) / 2;
             dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
             dc.drawText(tx, ty - tOffset, FONTS[:hour], t, Gfx.TEXT_JUSTIFY_CENTER);
@@ -253,17 +280,13 @@ module Planetary {
             var bodyR = radius * 0.08;
 
             // Day angle
-            var dow = s.dow - 1;
-            var angle = (dow * 2.0 * Math.PI / 7.0) - (Math.PI / 2.0);
-
-            // Smoothing, harder to tell day. decide later if delete
-            /* 
+            var day = s.day;
             var dowOffset = (s.hour / 24.0);
 
             // Smoothing
-            var smoothDow = dow + dowOffset;
-            var angle = (smoothDow * 2.0 * Math.PI / 7.0) - (Math.PI / 2.0);
-            */
+            var smoothDow = day.toFloat() + dowOffset.toFloat() - 1;
+            var lastDayOfMonth = getLastDayOfMonth(dc, s);
+            var angle = (smoothDow * 2.0 * Math.PI / lastDayOfMonth) - (Math.PI / 2.0);
 
             // Body Position
             var mx = cx + (orbitR * Math.cos(angle));
@@ -285,7 +308,12 @@ module Planetary {
 
             // Month Angle
             var mon = s.month;
-            var angle = (mon * 2.0 * Math.PI / 12.0) - (Math.PI / 2.0);
+
+            var lastDayOfMonth = getLastDayOfMonth(dc, s);
+            var monOffset = s.day.toFloat() / lastDayOfMonth.toFloat();
+            var smoothMon = mon + monOffset - 1;
+
+            var angle = (smoothMon * 2.0 * Math.PI / 12.0) - (Math.PI / 2.0);
 
             // Body Position
             var jx = cx + (orbitR * Math.cos(angle));
@@ -296,10 +324,22 @@ module Planetary {
             dc.fillCircle(jx, jy, bodyR);
 
             // Text
+            // var rn = [null, "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII" ];
             var t = s.month.toString();
+            // var t = rn[mon];
             var tOffset = dc.getFontHeight(FONTS[:mon]) / 2;
             dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
             dc.drawText(jx, jy - tOffset, FONTS[:mon], t, Gfx.TEXT_JUSTIFY_CENTER);
+        }
+
+        // DOW HIGHLIGHT
+        private function drawDowHighlight(dc as Dc, s as Planetary.State) {
+            var dow = s.dow;
+            var dies = [null, "SOLIS", "LUNAE", "MARTIS", "MERCURII", "IOVIS", "VENERIS", "SATURNI"];
+            var t = dies[dow];
+
+            dc.setColor(Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
+            dc.drawText(cx, cy - radius * 0.9, Gfx.FONT_XTINY, t, Gfx.TEXT_JUSTIFY_CENTER);
         }
     }
 }
