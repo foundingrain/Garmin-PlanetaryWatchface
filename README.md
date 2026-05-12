@@ -1,5 +1,5 @@
 # Planetary Garmin Watchface
-Emulates our solar system according to your current time.
+Emulates our solar system according to your current time. Inspired by Roman time symbols being linked to planetary bodies.
 
 
 https://github.com/user-attachments/assets/4b7957ca-72f1-41be-95a2-5ed175c3ae28
