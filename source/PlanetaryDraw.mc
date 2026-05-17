@@ -14,75 +14,69 @@ module Planetary {
 
         private const ORBITS = {
             :sol => 0.0,
-            :mercury => 0.15,
-            :venus => 0.30,
-            :terra => 0.45,
-            :mars => 0.60,
-            :juputer => 0.75,
-            :saturn => 0.90
+            :mercury => 0.15, :venus => 0.30, :terra => 0.45,
+            :mars => 0.60, :jupiter => 0.75, :saturn => 0.90
+        };
+        private const BODY_COLOR = {
+            :mercury => Gfx.COLOR_LT_GRAY, :venus => Gfx.COLOR_ORANGE, :terra => Gfx.COLOR_GREEN,
+            :mars => Gfx.COLOR_RED, :jupiter => Gfx.COLOR_ORANGE, :saturn => Gfx.COLOR_YELLOW
+        };
+        private const FONTS = {
+            :sec => Gfx.FONT_XTINY, :min => Gfx.FONT_XTINY, :hour => Gfx.FONT_XTINY,
+            :day => Gfx.FONT_XTINY, :mon => Gfx.FONT_XTINY, :year => Gfx.FONT_XTINY
         };
 
-        private const FONTS = {
-            :sec => Gfx.FONT_XTINY,
-            :min => Gfx.FONT_XTINY,
-            :hour => Gfx.FONT_XTINY,
-            :day => Gfx.FONT_XTINY,
-            :mon => Gfx.FONT_XTINY,
-            :year => Gfx.FONT_XTINY
-        };
-        // Helpers
+        private function orbitPos(orbitR as Float, smoothed as Float, period as Number) as Array {
+            var angle = (smoothed * 2.0 * Math.PI / period) - (Math.PI / 2.0);
+            return [
+                cx + (orbitR * Math.cos(angle)),
+                cy + (orbitR * Math.sin(angle))
+            ] as Array;
+        }
+        private function smoothed(whole as Float, fraction as Float, total as Float) as Float {
+            return whole + (fraction / total);
+        }
+        private function drawBody(dc as Dc, x, y, bodyR, color as Number) {
+            dc.setColor(color, Gfx.COLOR_TRANSPARENT);
+            dc.fillCircle(x, y, bodyR);
+        }
+        private function drawBodyText(dc as Dc, x, y, font, t as String) {
+            var tOffset = dc.getFontHeight(font) / 2;
+            dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
+            dc.drawText(x, y - tOffset, font, t, Gfx.TEXT_JUSTIFY_CENTER);
+        }
+
         private function starStyleForBattery(batt as Number, baseR as Number) as Dictionary {
             var coreR, ringR, color, ringColor; 
             var ringCount = 1;
 
             if (batt > 75) { 
-                coreR = baseR;
-                ringR = baseR * 1.3;
-                color = Gfx.COLOR_YELLOW;
-                ringColor = Gfx.COLOR_WHITE;
+                coreR = baseR; ringR = baseR * 1.3;
+                color = Gfx.COLOR_YELLOW; ringColor = Gfx.COLOR_WHITE;
             }
             else if (batt > 50){ 
-                coreR = baseR * 1.3;
-                ringR = baseR * 1.7;
-                color = Gfx.COLOR_RED;
-                ringColor = Gfx.COLOR_ORANGE;
+                coreR = baseR * 1.3; ringR = baseR * 1.7; 
+                color = Gfx.COLOR_RED; ringColor = Gfx.COLOR_ORANGE;
             }
             else if (batt > 40) { 
-                coreR = baseR * 0.9;
-                ringR = baseR * 2.0;
+                coreR = baseR * 0.9; ringR = baseR * 2.0;
                 ringCount = 2;
-                color = Gfx.COLOR_WHITE;
-                ringColor = Gfx.COLOR_YELLOW;
+                color = Gfx.COLOR_WHITE; ringColor = Gfx.COLOR_YELLOW;
             }
             else if (batt > 15){ 
-                coreR = baseR * 0.6;
-                ringR = baseR * 0.9;
-                color = Gfx.COLOR_BLUE;
-                ringColor = Gfx.COLOR_WHITE;
+                coreR = baseR * 0.6; ringR = baseR * 0.9;
+                color = Gfx.COLOR_BLUE; ringColor = Gfx.COLOR_WHITE;
             }
             else { 
-                coreR = baseR * 0.3;
-                ringR = baseR * 0.6;
-                color = Gfx.COLOR_BLACK;
-                ringColor = Gfx.COLOR_DK_GRAY;
+                coreR = baseR * 0.3; ringR = baseR * 0.6;
+                color = Gfx.COLOR_BLACK; ringColor = Gfx.COLOR_DK_GRAY;
             }
 
             return {
-                :coreR => coreR,
-                :ringR => ringR,
+                :coreR => coreR, :ringR => ringR,
                 :ringCount => ringCount,
-                :color => color,
-                :ringColor => ringColor
+                :color => color, :ringColor => ringColor
             };
-        }
-        private function drawSunRay(dc as Dc, minsSinceMidnight, outerR as Number) {
-           var m12 = minsSinceMidnight % 720;
-
-           var a = (m12 * 2.0 * Math.PI / 720.0) - (Math.PI / 2.0);
-           var x2 = cx + outerR * Math.cos(a);
-           var y2 = cy + outerR * Math.sin(a);
-
-            dc.drawLine(cx, cy, x2, y2);
         }
         private function getLastDayOfMonth(dc as Dc, s as Planetary.State) {
             var nextMonth = s.month + 1;
@@ -92,12 +86,8 @@ module Planetary {
                 year++;
             }
             var options = {
-                :year => year,
-                :month => nextMonth,
-                :day => 1,
-                :hour => s.hour,
-                :minute => s.min,
-                :second => s.sec
+                :year => year, :month => nextMonth, :day => 1,
+                :hour => s.hour, :minute => s.min, :second => s.sec
             };
 
             var when = Time.Gregorian.moment(options);
@@ -160,6 +150,7 @@ module Planetary {
             drawMonthLabel(dc, s);
             // drawYearLabel(dc, s);
         }
+
         private function drawTimeSeparationLine(dc as Dc) {
             var dots = 60;
             var dotr = radius * 0.01;
@@ -192,153 +183,67 @@ module Planetary {
             dc.setColor(Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
         }
         private function drawSecMercury(dc as Dc, s as Planetary.State) {
-            var orbitR = radius * 0.15;
+            var pos = orbitPos(radius * ORBITS[:mercury], s.sec.toFloat(), 60);
             var bodyR = radius * 0.07;
 
-            // Second position
-            var angle = (s.sec * 2.0 * Math.PI / 60) - (Math.PI / 2.0);
-
-            // Body Position
-            var mx = cx + (orbitR * Math.cos(angle));
-            var my = cy + (orbitR * Math.sin(angle));
-
-            // Body
-            dc.setColor(Gfx.COLOR_LT_GRAY, Gfx.COLOR_TRANSPARENT);
-            dc.fillCircle(mx, my, bodyR);
-
-            // Text
             var t = s.sec.toString();
             if (t.length() == 1) { t = "0" + t; }
-            var tOffsetH = dc.getFontHeight(FONTS[:sec]) / 2;
-            dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(mx, my - tOffsetH, FONTS[:sec], t, Gfx.TEXT_JUSTIFY_CENTER);
+
+            drawBody(dc, pos[0], pos[1], bodyR, BODY_COLOR[:mercury]);
+            drawBodyText(dc, pos[0], pos[1], FONTS[:sec], t);
         }
         private function drawMinVenus(dc as Dc, s as Planetary.State) {
-            var orbitR = radius * 0.3;
+            var pos = orbitPos(radius * ORBITS[:venus], smoothed(s.min.toFloat(), s.sec.toFloat(), 60.0), 60);
             var bodyR = radius * 0.08;
 
-            // Minute position
-            var minSmoothed = s.min.toFloat() + (s.sec.toFloat() / 60.0);
-            var angle = (minSmoothed * 2.0 * Math.PI / 60.0) - (Math.PI / 2.0);
-
-            // Body Position
-            var vx = cx + (orbitR * Math.cos(angle));
-            var vy = cy + (orbitR * Math.sin(angle));
-
-            // Body
-            dc.setColor(Gfx.COLOR_ORANGE, Gfx.COLOR_TRANSPARENT);
-            dc.fillCircle(vx, vy, bodyR);
-
-            // Text
             var t = s.min.toString();
             if (t.length() == 1) { t = "0" + t; }
-            var tOffset = dc.getFontHeight(FONTS[:min]) / 2;
-            dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(vx, vy - tOffset, FONTS[:min], t, Gfx.TEXT_JUSTIFY_CENTER);
+
+            drawBody(dc, pos[0], pos[1], bodyR, BODY_COLOR[:venus]);
+            drawBodyText(dc, pos[0], pos[1], FONTS[:min], t);
         }
         private function drawHourTerra(dc as Dc, s as Planetary.State) {
-            var orbitR = radius * 0.45;
+            var hour12 = (s.hour % 12).toFloat();
+            var pos = orbitPos(radius * ORBITS[:terra], smoothed(hour12, s.min.toFloat(), 60.0), 12);
             var bodyR = radius * 0.08;
 
-            var hour12 = s.hour % 12;
-            var smoothHour = hour12 + (s.min / 60.0);
+            var t = s.hour.toString();
 
-            // Hour Angle
-            var angle = (smoothHour * 2.0 * Math.PI / 12) - (Math.PI / 2.0);
-
-            // Body Position
-            var tx = cx + (orbitR * Math.cos(angle));
-            var ty = cy + (orbitR * Math.sin(angle));
-
-            // Body
-            dc.setColor(Gfx.COLOR_GREEN, Gfx.COLOR_TRANSPARENT);
-            dc.fillCircle(tx, ty, bodyR);
-
-            // Text
-            if (hour12 == 0) { hour12 = 12; }
-            var t = System.getDeviceSettings().is24Hour ? s.hour : hour12;
-            var tOffset = dc.getFontHeight(FONTS[:hour]) / 2;
-            dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(tx, ty - tOffset, FONTS[:hour], t, Gfx.TEXT_JUSTIFY_CENTER);
+            drawBody(dc, pos[0], pos[1], bodyR, BODY_COLOR[:terra]);
+            drawBodyText(dc, pos[0], pos[1], FONTS[:hour], t);
         }
         private function drawDayMars(dc as Dc, s as Planetary.State) {
-            var orbitR = radius * 0.6;
+            var lastDayOfMonth = getLastDayOfMonth(dc, s);
+            var pos = orbitPos(radius * ORBITS[:mars], smoothed(s.day.toFloat() - 1, s.hour.toFloat(), 24.0), lastDayOfMonth);
             var bodyR = radius * 0.08;
 
-            // Day angle
-            var day = s.day;
-            var dowOffset = (s.hour / 24.0);
-
-            // Smoothing
-            var smoothDow = day.toFloat() + dowOffset.toFloat() - 1;
-            var lastDayOfMonth = getLastDayOfMonth(dc, s);
-            var angle = (smoothDow * 2.0 * Math.PI / lastDayOfMonth) - (Math.PI / 2.0);
-
-            // Body Position
-            var mx = cx + (orbitR * Math.cos(angle));
-            var my = cy + (orbitR * Math.sin(angle));
-
-            // Body
-            dc.setColor(Gfx.COLOR_RED, Gfx.COLOR_TRANSPARENT);
-            dc.fillCircle(mx, my, bodyR);
-
-            // Text
             var t = s.day.toString();
-            var tOffset = dc.getFontHeight(FONTS[:day]) / 2;
-            dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(mx, my - tOffset, FONTS[:day], t, Gfx.TEXT_JUSTIFY_CENTER);
+
+            drawBody(dc, pos[0], pos[1], bodyR, BODY_COLOR[:mars]);
+            drawBodyText(dc, pos[0], pos[1], FONTS[:day], t);
         }
         private function drawMonthJupiter(dc as Dc, s as Planetary.State) {
-            var orbitR = radius * 0.75;
+            var lastDay = getLastDayOfMonth(dc, s).toFloat();
+            var pos = orbitPos(radius * ORBITS[:jupiter], smoothed(s.month - 1.toFloat(), s.day.toFloat(), lastDay), 12);
             var bodyR = radius * 0.08;
 
-            // Month Angle
-            var mon = s.month;
-
-            var lastDayOfMonth = getLastDayOfMonth(dc, s);
-            var monOffset = s.day.toFloat() / lastDayOfMonth.toFloat();
-            var smoothMon = mon + monOffset - 1;
-
-            var angle = (smoothMon * 2.0 * Math.PI / 12.0) - (Math.PI / 2.0);
-
-            // Body Position
-            var jx = cx + (orbitR * Math.cos(angle));
-            var jy = cy + (orbitR * Math.sin(angle));
-
-            // Body
-            dc.setColor(Gfx.COLOR_ORANGE, Gfx.COLOR_TRANSPARENT);
-            dc.fillCircle(jx, jy, bodyR);
-
-            // Text
             var t = s.month.toString();
-            var tOffset = dc.getFontHeight(FONTS[:mon]) / 2;
-            dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(jx, jy - tOffset, FONTS[:mon], t, Gfx.TEXT_JUSTIFY_CENTER);
+
+            drawBody(dc, pos[0], pos[1], bodyR, BODY_COLOR[:jupiter]);
+            drawBodyText(dc, pos[0], pos[1], FONTS[:mon], t);
         }
         private function drawYearSaturn(dc as Dc, s as Planetary.State) {
-            var orbitR = radius * 0.90;
+            var pos = orbitPos(radius * ORBITS[:saturn], s.year.toFloat(), 100);
             var bodyR = radius * 0.08;
 
-            var angle = (s.year * 2.0 * Math.PI / 100.0) - (Math.PI / 2.0);
+            dc.setColor(BODY_COLOR[:saturn], Gfx.COLOR_TRANSPARENT);
+            dc.drawEllipse(pos[0], pos[1], (bodyR * 2.4).toNumber(), (bodyR * 0.6).toNumber());
+            drawBody(dc, pos[0], pos[1], bodyR, BODY_COLOR[:saturn]);
 
-            // Body Position
-            var sx = cx + (orbitR * Math.cos(angle));
-            var sy = cy + (orbitR * Math.sin(angle));
-
-            // Ring
-            dc.setColor(Gfx.COLOR_YELLOW, Gfx.COLOR_TRANSPARENT);
-            dc.drawEllipse(sx, sy, (bodyR * 2.4).toNumber(), (bodyR * 0.6).toNumber());
-
-            // Body
-            dc.setColor(Gfx.COLOR_YELLOW, Gfx.COLOR_TRANSPARENT);
-            dc.fillCircle(sx, sy, bodyR);
-
-            // Text
             var yearString = s.year.toString();
             var t = yearString.substring(yearString.length() - 2, yearString.length());
-            var tOffset = dc.getFontHeight(FONTS[:year]) / 2;
-            dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-            dc.drawText(sx, sy - tOffset, FONTS[:year], t, Gfx.TEXT_JUSTIFY_CENTER);
+            
+            drawBodyText(dc, pos[0], pos[1], FONTS[:year], t);
         }
 
         // DOW HIGHLIGHT
