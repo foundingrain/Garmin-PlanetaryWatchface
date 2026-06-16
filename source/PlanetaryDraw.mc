@@ -136,7 +136,9 @@ module Planetary {
             drawBatterySol(dc, s);
 
             // Time
-            drawSecMercury(dc, s);
+            if (s.showSeconds) { 
+                drawSecMercury(dc, s);
+                }
             drawMinVenus(dc, s);
             drawHourTerra(dc, s);
 

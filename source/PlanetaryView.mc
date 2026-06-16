@@ -33,14 +33,13 @@ class PlanetaryView extends WatchUi.WatchFace {
     // Update the view
     function onUpdate(dc as Dc) as Void {
         state.updateFast();
+        state.tickGlance(15000); // 15 seconds
+
         if (state.shouldRunSlow(15)) {
             state.updateSlow();
         }
 
         draw.render(dc, state);
-
-        // Call the parent onUpdate function to redraw the layout
-        //View.onUpdate(dc);
     }
 
     // Called when this View is removed from the screen. Save the
@@ -51,10 +50,13 @@ class PlanetaryView extends WatchUi.WatchFace {
 
     // The user has just looked at their watch. Timers and animations may be started here.
     function onExitSleep() as Void {
+        state.onGlance();
+        WatchUi.requestUpdate();
     }
 
     // Terminate any active timers and prepare for slow updates.
     function onEnterSleep() as Void {
+        state.showSeconds = false;
     }
 
 }
